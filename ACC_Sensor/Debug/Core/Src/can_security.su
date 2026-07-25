@@ -1,0 +1,11 @@
+../Core/Src/can_security.c:21:9:CANSEC_Crc8	32	static
+../Core/Src/can_security.c:70:23:aes_xtime	16	static
+../Core/Src/can_security.c:80:13:aes128_key_expansion	40	static
+../Core/Src/can_security.c:121:13:aes_add_round_key	32	static
+../Core/Src/can_security.c:132:13:aes_sub_bytes	24	static
+../Core/Src/can_security.c:143:13:aes_shift_rows	24	static
+../Core/Src/can_security.c:162:13:aes_mix_columns	32	static
+../Core/Src/can_security.c:183:13:aes128_encrypt_block	40	static
+../Core/Src/can_security.c:225:13:cmac_leftshift_block	24	static
+../Core/Src/can_security.c:236:13:cmac_xor_block	32	static
+../Core/Src/can_security.c:244:6:CANSEC_ComputeTruncatedCmac	336	static

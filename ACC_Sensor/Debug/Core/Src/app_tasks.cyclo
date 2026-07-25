@@ -1,0 +1,12 @@
+../Core/Src/app_tasks.c:41:13:app_display_mailbox_update	2
+../Core/Src/app_tasks.c:55:13:UltrasonicCaptureTask	2
+../Core/Src/app_tasks.c:77:13:dist_apply	1
+../Core/Src/app_tasks.c:85:22:app_classify_distance	4
+../Core/Src/app_tasks.c:93:13:DistanceProcessingTask	8
+../Core/Src/app_tasks.c:165:13:tx_apply	1
+../Core/Src/app_tasks.c:172:13:CanTxTask	3
+../Core/Src/app_tasks.c:199:13:HealthMonitorTask	3
+../Core/Src/app_tasks.c:225:13:LedStatusTask	3
+../Core/Src/app_tasks.c:253:13:DisplayTask	2
+../Core/Src/app_tasks.c:284:6:vApplicationStackOverflowHook	1
+../Core/Src/app_tasks.c:295:6:APP_Tasks_Init	17

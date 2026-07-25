@@ -1,0 +1,4 @@
+../Core/Src/hcsr04_driver.c:34:13:hcsr04_delay_us	24	static
+../Core/Src/hcsr04_driver.c:44:6:HCSR04_Init	16	static
+../Core/Src/hcsr04_driver.c:58:6:HCSR04_MeasureDistanceCm	24	static
+../Core/Src/hcsr04_driver.c:87:6:HCSR04_IC_CaptureCallback	32	static,ignoring_inline_asm
