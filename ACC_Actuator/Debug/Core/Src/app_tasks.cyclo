@@ -1,0 +1,14 @@
+../Core/Src/app_tasks.c:48:13:ACC_Display_UpdateSnapshot_ApplyField	2
+../Core/Src/app_tasks.c:61:13:ACC_ApplyValidated	1
+../Core/Src/app_tasks.c:69:13:ACC_ApplyMotor	1
+../Core/Src/app_tasks.c:76:13:ACC_ApplyLink	1
+../Core/Src/app_tasks.c:81:13:ACC_ApplySecFault	1
+../Core/Src/app_tasks.c:90:13:ACC_CanRxTask	4
+../Core/Src/app_tasks.c:117:13:ACC_SecurityValidateTask	3
+../Core/Src/app_tasks.c:151:13:ACC_MotorControlTask	3
+../Core/Src/app_tasks.c:183:13:ACC_SafetyMonitorTask	6
+../Core/Src/app_tasks.c:233:13:ACC_LedStatusTask	3
+../Core/Src/app_tasks.c:273:13:ACC_DisplayTask	2
+../Core/Src/app_tasks.c:292:6:ACC_Tasks_Init	5
+../Core/Src/app_tasks.c:327:6:vApplicationStackOverflowHook	2
+../Core/Src/app_tasks.c:345:6:vApplicationMallocFailedHook	2

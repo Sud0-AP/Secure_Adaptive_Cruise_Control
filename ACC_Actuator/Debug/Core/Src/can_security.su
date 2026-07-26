@@ -1,0 +1,6 @@
+../Core/Src/can_security.c:14:6:ACC_Security_Init	16	static
+../Core/Src/can_security.c:22:9:ACC_CRC8_Compute	32	static
+../Core/Src/can_security.c:44:6:ACC_MAC_Verify	56	static
+../Core/Src/can_security.c:74:6:ACC_Counter_IsFresh	24	static
+../Core/Src/can_security.c:92:6:ACC_Counter_Accept	16	static
+../Core/Src/can_security.c:97:6:ACC_Security_ValidateFrame	32	static

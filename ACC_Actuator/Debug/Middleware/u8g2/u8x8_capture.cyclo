@@ -1,0 +1,6 @@
+../Middleware/u8g2/u8x8_capture.c:45:9:u8x8_capture_get_pixel_1	2
+../Middleware/u8g2/u8x8_capture.c:61:9:u8x8_capture_get_pixel_2	2
+../Middleware/u8g2/u8x8_capture.c:75:6:u8x8_capture_write_pbm_pre	1
+../Middleware/u8g2/u8x8_capture.c:85:6:u8x8_capture_write_pbm_buffer	4
+../Middleware/u8g2/u8x8_capture.c:111:6:u8x8_capture_write_xbm_pre	1
+../Middleware/u8g2/u8x8_capture.c:122:6:u8x8_capture_write_xbm_buffer	7

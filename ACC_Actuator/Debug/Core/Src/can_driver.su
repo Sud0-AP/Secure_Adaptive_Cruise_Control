@@ -1,0 +1,3 @@
+../Core/Src/can_driver.c:17:26:ACC_CanDriver_ConfigFilter	56	static
+../Core/Src/can_driver.c:37:19:ACC_CanDriver_Init	24	static
+../Core/Src/can_driver.c:60:6:HAL_CAN_RxFifo0MsgPendingCallback	64	static,ignoring_inline_asm

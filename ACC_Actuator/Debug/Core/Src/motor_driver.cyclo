@@ -1,0 +1,6 @@
+../Core/Src/motor_driver.c:31:13:ACC_Motor_ApplyDutyLocked	3
+../Core/Src/motor_driver.c:42:19:ACC_Motor_Init	3
+../Core/Src/motor_driver.c:63:6:ACC_Motor_SetTarget	8
+../Core/Src/motor_driver.c:91:6:ACC_Motor_Update	4
+../Core/Src/motor_driver.c:115:6:ACC_Motor_ForceStop	2
+../Core/Src/motor_driver.c:128:6:ACC_Motor_GetStatus	4
