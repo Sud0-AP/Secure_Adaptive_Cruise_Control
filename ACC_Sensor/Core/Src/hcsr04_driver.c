@@ -52,7 +52,7 @@ void HCSR04_Init(TIM_HandleTypeDef *htim)
 
     HAL_GPIO_WritePin(HCSR04_TRIG_GPIO_Port, HCSR04_TRIG_Pin, GPIO_PIN_RESET);
 
-    HAL_TIM_IC_Start_IT(s_htim, TIM_CHANNEL_2);
+    HAL_TIM_IC_Start_IT(s_htim, TIM_CHANNEL_1);
 }
 
 bool HCSR04_MeasureDistanceCm(uint16_t *out_distance_cm, uint32_t timeout_ticks)
@@ -86,12 +86,12 @@ bool HCSR04_MeasureDistanceCm(uint16_t *out_distance_cm, uint32_t timeout_ticks)
 
 void HCSR04_IC_CaptureCallback(TIM_HandleTypeDef *htim)
 {
-    if ((htim->Instance != s_htim->Instance) || (htim->Channel != HAL_TIM_ACTIVE_CHANNEL_2))
+    if ((htim->Instance != s_htim->Instance) || (htim->Channel != HAL_TIM_ACTIVE_CHANNEL_1))
     {
         return;
     }
 
-    const uint32_t captured = HAL_TIM_ReadCapturedValue(htim, TIM_CHANNEL_2);
+    const uint32_t captured = HAL_TIM_ReadCapturedValue(htim, TIM_CHANNEL_1);
     const GPIO_PinState level = HAL_GPIO_ReadPin(HCSR04_ECHO_GPIO_Port, HCSR04_ECHO_Pin);
 
     if (level == GPIO_PIN_SET)
@@ -104,14 +104,14 @@ void HCSR04_IC_CaptureCallback(TIM_HandleTypeDef *htim)
     {
         /* Falling edge, and we were legitimately expecting it: pulse ends now. */
         const uint32_t t_fall_us = captured;
-        /* TIM2 is a 32-bit counter on the F407 (unlike TIM3/TIM4, which are
-         * 16-bit) running at 1 MHz, so a wraparound would need ~71 minutes
-         * of continuous counting -- unreachable within an 11ms echo pulse.
-         * The subtraction below is still written to handle it correctly
-         * regardless, using the full 32-bit range. */
+        /* TIM3 is a 16-bit counter on the F407 running at 1 MHz, so it
+         * wraps every ~65.5ms -- unreachable within a valid echo pulse
+         * (max ~29ms at 500cm). The subtraction below is still written to
+         * handle a wrap-around correctly regardless, using 16-bit
+         * unsigned modulo arithmetic. */
         s_last_pulse_width_us = (t_fall_us >= s_t_rise_us)
                                      ? (t_fall_us - s_t_rise_us)
-                                     : ((0xFFFFFFFFU - s_t_rise_us) + t_fall_us + 1U);
+                                     : ((0xFFFFU - s_t_rise_us) + t_fall_us + 1U);
         s_echo_state = HCSR04_WAIT_RISING;
 
         BaseType_t higher_priority_task_woken = pdFALSE;

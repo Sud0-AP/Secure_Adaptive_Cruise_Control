@@ -3,7 +3,7 @@
 ../Core/Src/main.c:180:13:MX_CAN1_Init	2
 ../Core/Src/main.c:217:13:MX_I2C1_Init	2
 ../Core/Src/main.c:251:13:MX_IWDG_Init	2
-../Core/Src/main.c:279:13:MX_TIM2_Init	4
+../Core/Src/main.c:279:13:MX_TIM3_Init	4
 ../Core/Src/main.c:327:13:MX_GPIO_Init	1
 ../Core/Src/main.c:376:6:HAL_TIM_PeriodElapsedCallback	2
 ../Core/Src/main.c:394:6:Error_Handler	1

@@ -11,7 +11,7 @@
  *   Byte | Name          | Meaning
  *   -----|---------------|----------------------------------------------
  *     0  | command       | ACC_Command_t enum
- *     1  | distance_cm   | Measured distance, clamped 0-200
+ *     1  | distance_cm   | Measured distance, clamped 0-100
  *     2  | counter       | 8-bit rolling monotonic counter, wraps 255->0
  *     3  | crc8          | CRC-8 (poly 0x07, init 0xFF) over bytes 0-2
  *    4-7 | mac[4]        | First 4 bytes of AES-128-CMAC over bytes 0-3
@@ -27,18 +27,18 @@
 /** ACC command enum -- must match Board B bit-for-bit (PRD §2.2). */
 typedef enum
 {
-    ACC_CMD_STOP         = 0x00U, /**< distance < 30 cm: emergency proximity stop */
-    ACC_CMD_DECELERATE   = 0x01U, /**< 30 <= distance < 80 cm: slow down */
-    ACC_CMD_MAINTAIN     = 0x02U, /**< 80 <= distance < 150 cm: hold current speed */
-    ACC_CMD_ACCELERATE   = 0x03U, /**< distance >= 150 cm: accelerate toward cruise */
+    ACC_CMD_STOP         = 0x00U, /**< distance < 15 cm: emergency proximity stop */
+    ACC_CMD_DECELERATE   = 0x01U, /**< 15 <= distance < 40 cm: slow down */
+    ACC_CMD_MAINTAIN     = 0x02U, /**< 40 <= distance < 75 cm: hold current speed */
+    ACC_CMD_ACCELERATE   = 0x03U, /**< distance >= 75 cm: accelerate toward cruise */
     ACC_CMD_SENSOR_FAULT = 0xFFU  /**< 3+ consecutive HC-SR04 echo timeouts */
 } ACC_Command_t;
 
 /** Distance thresholds, cm (PRD §2.2). */
-#define ACC_DIST_STOP_MAX_CM        30U
-#define ACC_DIST_DECEL_MAX_CM       80U
-#define ACC_DIST_MAINTAIN_MAX_CM    150U
-#define ACC_DIST_CLAMP_MAX_CM       200U /**< plank length; clamp readings above this */
+#define ACC_DIST_STOP_MAX_CM        15U
+#define ACC_DIST_DECEL_MAX_CM       40U
+#define ACC_DIST_MAINTAIN_MAX_CM    75U
+#define ACC_DIST_CLAMP_MAX_CM       100U /**< plank length; clamp readings above this */
 
 /** CAN identifiers / framing (PRD §2.1, §2.6). */
 #define ACC_CAN_ID_DATA_FRAME   0x100U /**< Sensor -> Actuator, this board transmits */
@@ -72,7 +72,7 @@ HAL_StatusTypeDef CANDRV_Init(CAN_HandleTypeDef *hcan);
  * the next scheduled sample naturally carries the next counter value).
  *
  * @param  command      ACC command to transmit.
- * @param  distance_cm  Distance in cm, already clamped to 0-200 by the caller.
+ * @param  distance_cm  Distance in cm, already clamped to 0-100 by the caller.
  * @return HAL_OK if the frame was queued into a CAN1 Tx mailbox; HAL_BUSY
  *         if all three mailboxes are full; HAL_ERROR on a HAL-level failure.
  */

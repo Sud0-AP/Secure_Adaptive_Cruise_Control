@@ -249,7 +249,7 @@ void OLED_RenderSnapshot(const ACC_DisplaySnapshot_t *snapshot)
     strcat(status_line, snapshot->can_tx_ok ? " CAN:OK" : " CAN:ERR");
     oled_draw_string(4U, 0U, status_line);
 
-    /* Distance bar: 0-200cm mapped to 0-128px, clamped defensively. */
+    /* Distance bar: 0-100cm mapped to 0-128px, clamped defensively. */
     uint16_t clamped = snapshot->distance_cm;
     if (clamped > ACC_DIST_CLAMP_MAX_CM)
     {

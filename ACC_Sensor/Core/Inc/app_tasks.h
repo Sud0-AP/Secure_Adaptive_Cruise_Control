@@ -57,7 +57,7 @@ typedef struct
 } ACC_TxRequest_t;
 
 /* --- Centrally-owned synchronisation objects (PRD §3.4) --- */
-extern SemaphoreHandle_t xEchoCaptureSem;  /**< given by TIM2 IC ISR, taken by UltrasonicCaptureTask */
+extern SemaphoreHandle_t xEchoCaptureSem;  /**< given by TIM3 IC ISR, taken by UltrasonicCaptureTask */
 extern QueueHandle_t xDistanceQueue;       /**< depth 4, element uint16_t (raw cm or timeout sentinel) */
 extern QueueHandle_t xTxRequestQueue;      /**< depth 4, element ACC_TxRequest_t */
 extern QueueHandle_t xDisplayMailbox;      /**< depth 1, "latest value" mailbox, element ACC_DisplaySnapshot_t */

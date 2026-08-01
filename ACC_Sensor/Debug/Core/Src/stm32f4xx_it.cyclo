@@ -6,5 +6,5 @@
 ../Core/Src/stm32f4xx_it.c:148:6:DebugMon_Handler	1
 ../Core/Src/stm32f4xx_it.c:168:6:CAN1_RX0_IRQHandler	1
 ../Core/Src/stm32f4xx_it.c:182:6:TIM1_UP_TIM10_IRQHandler	1
-../Core/Src/stm32f4xx_it.c:196:6:TIM2_IRQHandler	1
+../Core/Src/stm32f4xx_it.c:196:6:TIM3_IRQHandler	1
 ../Core/Src/stm32f4xx_it.c:208:6:HAL_TIM_IC_CaptureCallback	1

@@ -1,6 +1,6 @@
 /**
  * @file    hcsr04_driver.h
- * @brief   HC-SR04 ultrasonic distance driver using TIM2 input capture
+ * @brief   HC-SR04 ultrasonic distance driver using TIM3 input capture
  *          (both-edges mode) for microsecond-accurate ECHO pulse timing.
  */
 #ifndef HCSR04_DRIVER_H
@@ -10,22 +10,22 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#define HCSR04_TRIG_GPIO_Port          GPIOA
-#define HCSR04_TRIG_Pin                GPIO_PIN_0
+#define HCSR04_TRIG_GPIO_Port          GPIOC
+#define HCSR04_TRIG_Pin                GPIO_PIN_7
 
-#define HCSR04_ECHO_GPIO_Port          GPIOA
-#define HCSR04_ECHO_Pin                GPIO_PIN_1
+#define HCSR04_ECHO_GPIO_Port          GPIOC
+#define HCSR04_ECHO_Pin                GPIO_PIN_6
 
 #define HCSR04_TRIG_PULSE_US           10U   /**< HC-SR04 datasheet minimum trigger pulse */
-#define HCSR04_ECHO_TIMEOUT_MS         30U   /**< generous margin over the ~11.6ms round trip at 200cm */
+#define HCSR04_ECHO_TIMEOUT_MS         50U   /**< margin over the ~29ms round trip at 500cm (HCSR04_MAX_PLAUSIBLE_CM) */
 #define HCSR04_SOUND_US_PER_CM         58U   /**< round-trip time constant: distance_cm = pulse_us / 58 */
-#define HCSR04_MAX_PLAUSIBLE_CM        500U  /**< sanity ceiling before app-level 0-200 clamp; catches noise spikes */
+#define HCSR04_MAX_PLAUSIBLE_CM        500U  /**< sanity ceiling before app-level 0-100 clamp; catches noise spikes */
 
 /**
  * @brief  Initialise the driver: enables the DWT cycle counter (for the
- *         microsecond trigger-pulse delay) and starts TIM2 channel 2
+ *         microsecond trigger-pulse delay) and starts TIM3 channel 1
  *         input capture in interrupt mode.
- * @param  htim Pointer to the TIM2 handle (channel 2, both-edges IC mode,
+ * @param  htim Pointer to the TIM3 handle (channel 1, both-edges IC mode,
  *              already configured by CubeMX to count at 1 MHz).
  */
 void HCSR04_Init(TIM_HandleTypeDef *htim);
