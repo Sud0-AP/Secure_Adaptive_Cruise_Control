@@ -62,32 +62,41 @@ in `Core/` and is written on top of the STM32 HAL and FreeRTOS.
 
 ## How it works (data flow)
 
-```
-             HC-SR04                    TIM3 IC capture (ISR)
-   TRIG (10us)  <-------------------o    captures both edges,
-               ECHO pulse ---------->     computes pulse width,
-                                          gives xEchoCaptureSem
-                     |
-                     v
-   [UltrasonicCaptureTask]  prio 5
-     fires trigger, blocks on semaphore,
-     converts pulse_us / 58  ->  cm
-     (0xFFFF sentinel on timeout/implausible)
-                     |
-                     v  xDistanceQueue (depth 4)
-   [DistanceProcessingTask]  prio 3
-     clamp to ACC_DIST_CLAMP_MAX_CM (100)
-     3-sample moving average filter
-     3+ consecutive timeouts -> SENSOR_FAULT
-     classify distance -> ACC command
-                     |
-                     v  xTxRequestQueue (depth 4)
-   [CanTxTask]  prio 4
-     builds 8-byte frame (CRC-8 + CMAC)
-     writes to CAN1 Tx mailbox
-                     |
-                     v  CAN bus @ 500 kbps  (ID 0x100)
-                        -> Actuator Node
+```mermaid
+flowchart TD
+    classDef queue fill:#e3f2fd,stroke:#1565c0,color:#0d47a1
+    classDef task  fill:#e8f5e9,stroke:#2e7d32,color:#1b5e20
+    classDef hw    fill:#eceff1,stroke:#37474f,color:#263238
+    classDef isr   fill:#fff3e0,stroke:#ef6c00,color:#bf360c
+    classDef fail  fill:#ffebee,stroke:#c62828,color:#b71c1c
+
+    SENSOR(["HC-SR04<br/>TRIG = PC7 · ECHO = PC6"])
+    ISR["TIM3 IC capture ISR<br/>captures both edges · computes pulse width<br/>gives xEchoCaptureSem"]
+    SEM{{"xEchoCaptureSem<br/>binary semaphore"}}
+    UCT["UltrasonicCaptureTask · prio 5<br/>fire 10 us trigger · block on semaphore<br/>pulse_us / 58 → cm<br/>0xFFFF sentinel on timeout / implausible"]
+    DQ{{"xDistanceQueue<br/>depth 4"}}
+    DPT["DistanceProcessingTask · prio 3<br/>clamp to 100 cm · 3-sample moving average<br/>3+ consecutive timeouts → SENSOR_FAULT<br/>classify distance → ACC command"]
+    TQ{{"xTxRequestQueue<br/>depth 4"}}
+    CXT["CanTxTask · prio 4<br/>build 8-byte frame · CRC-8 + AES-128-CMAC<br/>write to CAN1 Tx mailbox"]
+    BUS(("CAN1 @ 500 kbps<br/>ID 0x100 → Actuator Node"))
+    HMT["HealthMonitorTask · prio 2<br/>IWDG refresh · fault on 500 ms staleness"]
+
+    SENSOR --> ISR
+    ISR -- "give" --> SEM
+    SEM -- "take" --> UCT
+    UCT -- "send" --> DQ
+    DQ --> DPT
+    DPT -- "send" --> TQ
+    TQ --> CXT
+    CXT --> BUS
+    DPT -. "reading stale" .-> HMT
+    CXT -. "Tx stale" .-> HMT
+
+    class SENSOR,BUS hw
+    class ISR isr
+    class UCT,DPT,CXT task
+    class SEM,DQ,TQ queue
+    class HMT fail
 ```
 
 Interleaved diagnostic tasks (all best-effort):
@@ -224,13 +233,22 @@ moving average is applied, then classified:
 
 Startup sequence in `main()`:
 
-```
-HAL_Init -> SystemClock_Config -> MX_GPIO/CAN1/I2C1/IWDG/TIM3_Init
-  -> HCSR04_Init(&htim3)
-  -> CANDRV_Init(&hcan1)
-  -> OLED_Init(&hi2c1)
-  -> APP_Tasks_Init()            (creates all queues/tasks)
-  -> vTaskStartScheduler()
+```mermaid
+flowchart TD
+    H["HAL_Init"]
+    C["SystemClock_Config"]
+    M["MX_GPIO / CAN1 / I2C1 / IWDG / TIM3_Init"]
+    HSR["HCSR04_Init(&amp;htim3)"]
+    CD["CANDRV_Init(&amp;hcan1)<br/>accept-all filter + start CAN1"]
+    OD["OLED_Init(&amp;hi2c1)"]
+    T["APP_Tasks_Init()<br/>create all queues / tasks"]
+    S["vTaskStartScheduler()"]
+    E["Error_Handler()<br/>disable IRQs · trap"]
+
+    H --> C --> M --> HSR --> CD --> OD --> T --> S
+    CD -- "HAL != OK" --> E
+    OD -- "HAL != OK" --> E
+    T -- "false" --> E
 ```
 
 Any init failure or FreeRTOS allocation failure calls `Error_Handler()`, which
