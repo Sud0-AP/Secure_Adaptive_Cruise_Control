@@ -2,3 +2,4 @@
 ../Core/Src/main.c:139:6:SystemClock_Config	3
 ../Core/Src/main.c:194:6:HAL_TIM_PeriodElapsedCallback	2
 ../Core/Src/main.c:212:6:Error_Handler	2
+../Core/Src/main.c:233:6:assert_failed	1

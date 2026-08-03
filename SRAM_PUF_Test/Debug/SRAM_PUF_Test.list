@@ -1,0 +1,446 @@
+
+SRAM_PUF_Test.elf:     file format elf32-littlearm
+
+Sections:
+Idx Name          Size      VMA       LMA       File off  Algn
+  0 .isr_vector   00000040  08000000  08000000  00001000  2**2
+                  CONTENTS, ALLOC, LOAD, READONLY, DATA
+  1 .text         000002a8  08000040  08000040  00001040  2**2
+                  CONTENTS, ALLOC, LOAD, READONLY, CODE
+  2 .data         00000000  20000000  20000000  000012e8  2**0
+                  CONTENTS, ALLOC, LOAD, DATA
+  3 .bss          00000000  20000000  20000000  00000000  2**0
+                  ALLOC
+  4 .puf_region   00000800  10000000  10000000  00002000  2**0
+                  ALLOC
+  5 .debug_info   00000343  00000000  00000000  000012e8  2**0
+                  CONTENTS, READONLY, DEBUGGING, OCTETS
+  6 .debug_abbrev 000001fe  00000000  00000000  0000162b  2**0
+                  CONTENTS, READONLY, DEBUGGING, OCTETS
+  7 .debug_aranges 00000080  00000000  00000000  00001829  2**0
+                  CONTENTS, READONLY, DEBUGGING, OCTETS
+  8 .debug_rnglists 00000057  00000000  00000000  000018a9  2**0
+                  CONTENTS, READONLY, DEBUGGING, OCTETS
+  9 .debug_macro  00001075  00000000  00000000  00001900  2**0
+                  CONTENTS, READONLY, DEBUGGING, OCTETS
+ 10 .debug_line   00000898  00000000  00000000  00002975  2**0
+                  CONTENTS, READONLY, DEBUGGING, OCTETS
+ 11 .debug_str    00004113  00000000  00000000  0000320d  2**0
+                  CONTENTS, READONLY, DEBUGGING, OCTETS
+ 12 .debug_frame  00000174  00000000  00000000  00007320  2**2
+                  CONTENTS, READONLY, DEBUGGING, OCTETS
+
+Disassembly of section .text:
+
+08000040 <delay>:
+#define GPIOD_ODR     (*(volatile uint32_t *)(0x40020C00UL + 0x14))
+
+#define USART2_SR     (*(volatile uint32_t *)(0x40004400UL + 0x00))
+#define USART2_DR     (*(volatile uint32_t *)(0x40004400UL + 0x04))
+
+static void delay(volatile uint32_t n) { while (n--) { __asm__("nop"); } }
+ 8000040:	b480      	push	{r7}
+ 8000042:	b083      	sub	sp, #12
+ 8000044:	af00      	add	r7, sp, #0
+ 8000046:	6078      	str	r0, [r7, #4]
+ 8000048:	e000      	b.n	800004c <delay+0xc>
+ 800004a:	bf00      	nop
+ 800004c:	687b      	ldr	r3, [r7, #4]
+ 800004e:	1e5a      	subs	r2, r3, #1
+ 8000050:	607a      	str	r2, [r7, #4]
+ 8000052:	2b00      	cmp	r3, #0
+ 8000054:	d1f9      	bne.n	800004a <delay+0xa>
+ 8000056:	bf00      	nop
+ 8000058:	bf00      	nop
+ 800005a:	370c      	adds	r7, #12
+ 800005c:	46bd      	mov	sp, r7
+ 800005e:	bc80      	pop	{r7}
+ 8000060:	4770      	bx	lr
+	...
+
+08000064 <uart_send_str>:
+
+static void uart_send_str(const char *s)
+{
+ 8000064:	b480      	push	{r7}
+ 8000066:	b083      	sub	sp, #12
+ 8000068:	af00      	add	r7, sp, #0
+ 800006a:	6078      	str	r0, [r7, #4]
+    while (*s) {
+ 800006c:	e00c      	b.n	8000088 <uart_send_str+0x24>
+        while (!(USART2_SR & (1UL << 7))) { }
+ 800006e:	bf00      	nop
+ 8000070:	4b0a      	ldr	r3, [pc, #40]	@ (800009c <uart_send_str+0x38>)
+ 8000072:	681b      	ldr	r3, [r3, #0]
+ 8000074:	f003 0380 	and.w	r3, r3, #128	@ 0x80
+ 8000078:	2b00      	cmp	r3, #0
+ 800007a:	d0f9      	beq.n	8000070 <uart_send_str+0xc>
+        USART2_DR = (uint8_t)*s++;
+ 800007c:	687b      	ldr	r3, [r7, #4]
+ 800007e:	1c5a      	adds	r2, r3, #1
+ 8000080:	607a      	str	r2, [r7, #4]
+ 8000082:	781a      	ldrb	r2, [r3, #0]
+ 8000084:	4b06      	ldr	r3, [pc, #24]	@ (80000a0 <uart_send_str+0x3c>)
+ 8000086:	601a      	str	r2, [r3, #0]
+    while (*s) {
+ 8000088:	687b      	ldr	r3, [r7, #4]
+ 800008a:	781b      	ldrb	r3, [r3, #0]
+ 800008c:	2b00      	cmp	r3, #0
+ 800008e:	d1ee      	bne.n	800006e <uart_send_str+0xa>
+    }
+}
+ 8000090:	bf00      	nop
+ 8000092:	bf00      	nop
+ 8000094:	370c      	adds	r7, #12
+ 8000096:	46bd      	mov	sp, r7
+ 8000098:	bc80      	pop	{r7}
+ 800009a:	4770      	bx	lr
+ 800009c:	40004400 	.word	0x40004400
+ 80000a0:	40004404 	.word	0x40004404
+
+080000a4 <main>:
+
+int main(void)
+{
+ 80000a4:	b580      	push	{r7, lr}
+ 80000a6:	af00      	add	r7, sp, #0
+    RCC_AHB1ENR |= (1UL << 3); /* GPIOD clock */
+ 80000a8:	4b0f      	ldr	r3, [pc, #60]	@ (80000e8 <main+0x44>)
+ 80000aa:	681b      	ldr	r3, [r3, #0]
+ 80000ac:	4a0e      	ldr	r2, [pc, #56]	@ (80000e8 <main+0x44>)
+ 80000ae:	f043 0308 	orr.w	r3, r3, #8
+ 80000b2:	6013      	str	r3, [r2, #0]
+    GPIOD_MODER &= ~(0x3UL << (12 * 2));
+ 80000b4:	4b0d      	ldr	r3, [pc, #52]	@ (80000ec <main+0x48>)
+ 80000b6:	681b      	ldr	r3, [r3, #0]
+ 80000b8:	4a0c      	ldr	r2, [pc, #48]	@ (80000ec <main+0x48>)
+ 80000ba:	f023 7340 	bic.w	r3, r3, #50331648	@ 0x3000000
+ 80000be:	6013      	str	r3, [r2, #0]
+    GPIOD_MODER |=  (0x1UL << (12 * 2)); /* PD12 output */
+ 80000c0:	4b0a      	ldr	r3, [pc, #40]	@ (80000ec <main+0x48>)
+ 80000c2:	681b      	ldr	r3, [r3, #0]
+ 80000c4:	4a09      	ldr	r2, [pc, #36]	@ (80000ec <main+0x48>)
+ 80000c6:	f043 7380 	orr.w	r3, r3, #16777216	@ 0x1000000
+ 80000ca:	6013      	str	r3, [r2, #0]
+
+    uart_send_str("BOOT_COMPLETE\n");
+ 80000cc:	4808      	ldr	r0, [pc, #32]	@ (80000f0 <main+0x4c>)
+ 80000ce:	f7ff ffc9 	bl	8000064 <uart_send_str>
+
+    while (1) {
+        GPIOD_ODR ^= (1UL << 12);
+ 80000d2:	4b08      	ldr	r3, [pc, #32]	@ (80000f4 <main+0x50>)
+ 80000d4:	681b      	ldr	r3, [r3, #0]
+ 80000d6:	4a07      	ldr	r2, [pc, #28]	@ (80000f4 <main+0x50>)
+ 80000d8:	f483 5380 	eor.w	r3, r3, #4096	@ 0x1000
+ 80000dc:	6013      	str	r3, [r2, #0]
+        delay(800000);
+ 80000de:	4806      	ldr	r0, [pc, #24]	@ (80000f8 <main+0x54>)
+ 80000e0:	f7ff ffae 	bl	8000040 <delay>
+        GPIOD_ODR ^= (1UL << 12);
+ 80000e4:	bf00      	nop
+ 80000e6:	e7f4      	b.n	80000d2 <main+0x2e>
+ 80000e8:	40023830 	.word	0x40023830
+ 80000ec:	40020c00 	.word	0x40020c00
+ 80000f0:	080002c0 	.word	0x080002c0
+ 80000f4:	40020c14 	.word	0x40020c14
+ 80000f8:	000c3500 	.word	0x000c3500
+
+080000fc <uart_init_raw>:
+/* Symbols provided by the linker script for .data/.bss init */
+extern uint32_t _sidata, _sdata, _edata, _sbss, _ebss;
+extern uint32_t _estack;
+
+static void uart_init_raw(void)
+{
+ 80000fc:	b480      	push	{r7}
+ 80000fe:	af00      	add	r7, sp, #0
+    RCC_AHB1ENR |= RCC_AHB1ENR_GPIOAEN;
+ 8000100:	4b1a      	ldr	r3, [pc, #104]	@ (800016c <uart_init_raw+0x70>)
+ 8000102:	681b      	ldr	r3, [r3, #0]
+ 8000104:	4a19      	ldr	r2, [pc, #100]	@ (800016c <uart_init_raw+0x70>)
+ 8000106:	f043 0301 	orr.w	r3, r3, #1
+ 800010a:	6013      	str	r3, [r2, #0]
+    RCC_APB1ENR |= RCC_APB1ENR_USART2EN;
+ 800010c:	4b18      	ldr	r3, [pc, #96]	@ (8000170 <uart_init_raw+0x74>)
+ 800010e:	681b      	ldr	r3, [r3, #0]
+ 8000110:	4a17      	ldr	r2, [pc, #92]	@ (8000170 <uart_init_raw+0x74>)
+ 8000112:	f443 3300 	orr.w	r3, r3, #131072	@ 0x20000
+ 8000116:	6013      	str	r3, [r2, #0]
+
+    /* PA2 -> alternate function mode (MODER bits [5:4] = 10) */
+    GPIOA_MODER &= ~(0x3UL << (2 * 2));
+ 8000118:	4b16      	ldr	r3, [pc, #88]	@ (8000174 <uart_init_raw+0x78>)
+ 800011a:	681b      	ldr	r3, [r3, #0]
+ 800011c:	4a15      	ldr	r2, [pc, #84]	@ (8000174 <uart_init_raw+0x78>)
+ 800011e:	f023 0330 	bic.w	r3, r3, #48	@ 0x30
+ 8000122:	6013      	str	r3, [r2, #0]
+    GPIOA_MODER |=  (0x2UL << (2 * 2));
+ 8000124:	4b13      	ldr	r3, [pc, #76]	@ (8000174 <uart_init_raw+0x78>)
+ 8000126:	681b      	ldr	r3, [r3, #0]
+ 8000128:	4a12      	ldr	r2, [pc, #72]	@ (8000174 <uart_init_raw+0x78>)
+ 800012a:	f043 0320 	orr.w	r3, r3, #32
+ 800012e:	6013      	str	r3, [r2, #0]
+    GPIOA_OSPEEDR |= (0x3UL << (2 * 2)); /* high speed */
+ 8000130:	4b11      	ldr	r3, [pc, #68]	@ (8000178 <uart_init_raw+0x7c>)
+ 8000132:	681b      	ldr	r3, [r3, #0]
+ 8000134:	4a10      	ldr	r2, [pc, #64]	@ (8000178 <uart_init_raw+0x7c>)
+ 8000136:	f043 0330 	orr.w	r3, r3, #48	@ 0x30
+ 800013a:	6013      	str	r3, [r2, #0]
+    /* AF7 = USART2, goes in AFRL nibble for pin 2 (bits [11:8]) */
+    GPIOA_AFRL &= ~(0xFUL << (4 * 2));
+ 800013c:	4b0f      	ldr	r3, [pc, #60]	@ (800017c <uart_init_raw+0x80>)
+ 800013e:	681b      	ldr	r3, [r3, #0]
+ 8000140:	4a0e      	ldr	r2, [pc, #56]	@ (800017c <uart_init_raw+0x80>)
+ 8000142:	f423 6370 	bic.w	r3, r3, #3840	@ 0xf00
+ 8000146:	6013      	str	r3, [r2, #0]
+    GPIOA_AFRL |=  (0x7UL << (4 * 2));
+ 8000148:	4b0c      	ldr	r3, [pc, #48]	@ (800017c <uart_init_raw+0x80>)
+ 800014a:	681b      	ldr	r3, [r3, #0]
+ 800014c:	4a0b      	ldr	r2, [pc, #44]	@ (800017c <uart_init_raw+0x80>)
+ 800014e:	f443 63e0 	orr.w	r3, r3, #1792	@ 0x700
+ 8000152:	6013      	str	r3, [r2, #0]
+
+    USART2_BRR = USART2_BRR_115200_AT_16MHZ;
+ 8000154:	4b0a      	ldr	r3, [pc, #40]	@ (8000180 <uart_init_raw+0x84>)
+ 8000156:	f240 6283 	movw	r2, #1667	@ 0x683
+ 800015a:	601a      	str	r2, [r3, #0]
+    USART2_CR1 = USART_CR1_UE | USART_CR1_TE;
+ 800015c:	4b09      	ldr	r3, [pc, #36]	@ (8000184 <uart_init_raw+0x88>)
+ 800015e:	f242 0208 	movw	r2, #8200	@ 0x2008
+ 8000162:	601a      	str	r2, [r3, #0]
+}
+ 8000164:	bf00      	nop
+ 8000166:	46bd      	mov	sp, r7
+ 8000168:	bc80      	pop	{r7}
+ 800016a:	4770      	bx	lr
+ 800016c:	40023830 	.word	0x40023830
+ 8000170:	40023840 	.word	0x40023840
+ 8000174:	40020000 	.word	0x40020000
+ 8000178:	40020008 	.word	0x40020008
+ 800017c:	40020020 	.word	0x40020020
+ 8000180:	40004408 	.word	0x40004408
+ 8000184:	4000440c 	.word	0x4000440c
+
+08000188 <uart_send_byte>:
+
+static void uart_send_byte(uint8_t b)
+{
+ 8000188:	b480      	push	{r7}
+ 800018a:	b083      	sub	sp, #12
+ 800018c:	af00      	add	r7, sp, #0
+ 800018e:	4603      	mov	r3, r0
+ 8000190:	71fb      	strb	r3, [r7, #7]
+    while (!(USART2_SR & USART_SR_TXE)) { }
+ 8000192:	bf00      	nop
+ 8000194:	4b06      	ldr	r3, [pc, #24]	@ (80001b0 <uart_send_byte+0x28>)
+ 8000196:	681b      	ldr	r3, [r3, #0]
+ 8000198:	f003 0380 	and.w	r3, r3, #128	@ 0x80
+ 800019c:	2b00      	cmp	r3, #0
+ 800019e:	d0f9      	beq.n	8000194 <uart_send_byte+0xc>
+    USART2_DR = b;
+ 80001a0:	4a04      	ldr	r2, [pc, #16]	@ (80001b4 <uart_send_byte+0x2c>)
+ 80001a2:	79fb      	ldrb	r3, [r7, #7]
+ 80001a4:	6013      	str	r3, [r2, #0]
+}
+ 80001a6:	bf00      	nop
+ 80001a8:	370c      	adds	r7, #12
+ 80001aa:	46bd      	mov	sp, r7
+ 80001ac:	bc80      	pop	{r7}
+ 80001ae:	4770      	bx	lr
+ 80001b0:	40004400 	.word	0x40004400
+ 80001b4:	40004404 	.word	0x40004404
+
+080001b8 <uart_send_str>:
+
+static void uart_send_str(const char *s)
+{
+ 80001b8:	b580      	push	{r7, lr}
+ 80001ba:	b082      	sub	sp, #8
+ 80001bc:	af00      	add	r7, sp, #0
+ 80001be:	6078      	str	r0, [r7, #4]
+    while (*s) uart_send_byte((uint8_t)*s++);
+ 80001c0:	e006      	b.n	80001d0 <uart_send_str+0x18>
+ 80001c2:	687b      	ldr	r3, [r7, #4]
+ 80001c4:	1c5a      	adds	r2, r3, #1
+ 80001c6:	607a      	str	r2, [r7, #4]
+ 80001c8:	781b      	ldrb	r3, [r3, #0]
+ 80001ca:	4618      	mov	r0, r3
+ 80001cc:	f7ff ffdc 	bl	8000188 <uart_send_byte>
+ 80001d0:	687b      	ldr	r3, [r7, #4]
+ 80001d2:	781b      	ldrb	r3, [r3, #0]
+ 80001d4:	2b00      	cmp	r3, #0
+ 80001d6:	d1f4      	bne.n	80001c2 <uart_send_str+0xa>
+}
+ 80001d8:	bf00      	nop
+ 80001da:	bf00      	nop
+ 80001dc:	3708      	adds	r7, #8
+ 80001de:	46bd      	mov	sp, r7
+ 80001e0:	bd80      	pop	{r7, pc}
+	...
+
+080001e4 <uart_flush>:
+
+static void uart_flush(void)
+{
+ 80001e4:	b480      	push	{r7}
+ 80001e6:	af00      	add	r7, sp, #0
+    while (!(USART2_SR & USART_SR_TC)) { }
+ 80001e8:	bf00      	nop
+ 80001ea:	4b05      	ldr	r3, [pc, #20]	@ (8000200 <uart_flush+0x1c>)
+ 80001ec:	681b      	ldr	r3, [r3, #0]
+ 80001ee:	f003 0340 	and.w	r3, r3, #64	@ 0x40
+ 80001f2:	2b00      	cmp	r3, #0
+ 80001f4:	d0f9      	beq.n	80001ea <uart_flush+0x6>
+}
+ 80001f6:	bf00      	nop
+ 80001f8:	bf00      	nop
+ 80001fa:	46bd      	mov	sp, r7
+ 80001fc:	bc80      	pop	{r7}
+ 80001fe:	4770      	bx	lr
+ 8000200:	40004400 	.word	0x40004400
+
+08000204 <puf_raw_dump>:
+ *   "\nPUFEND\n"
+ * No compression, no re-formatting - the host script consumes raw bytes so
+ * nothing in the toolchain can quietly "clean up" a bit for you.
+ */
+static void puf_raw_dump(void)
+{
+ 8000204:	b580      	push	{r7, lr}
+ 8000206:	b082      	sub	sp, #8
+ 8000208:	af00      	add	r7, sp, #0
+    uart_init_raw();
+ 800020a:	f7ff ff77 	bl	80000fc <uart_init_raw>
+    uart_send_str("PUFSTART\n");
+ 800020e:	480f      	ldr	r0, [pc, #60]	@ (800024c <puf_raw_dump+0x48>)
+ 8000210:	f7ff ffd2 	bl	80001b8 <uart_send_str>
+
+    uint8_t *p = &_spuf;
+ 8000214:	4b0e      	ldr	r3, [pc, #56]	@ (8000250 <puf_raw_dump+0x4c>)
+ 8000216:	603b      	str	r3, [r7, #0]
+    for (uint32_t i = 0; i < PUF_REGION_SIZE; i++) {
+ 8000218:	2300      	movs	r3, #0
+ 800021a:	607b      	str	r3, [r7, #4]
+ 800021c:	e009      	b.n	8000232 <puf_raw_dump+0x2e>
+        uart_send_byte(p[i]);
+ 800021e:	683a      	ldr	r2, [r7, #0]
+ 8000220:	687b      	ldr	r3, [r7, #4]
+ 8000222:	4413      	add	r3, r2
+ 8000224:	781b      	ldrb	r3, [r3, #0]
+ 8000226:	4618      	mov	r0, r3
+ 8000228:	f7ff ffae 	bl	8000188 <uart_send_byte>
+    for (uint32_t i = 0; i < PUF_REGION_SIZE; i++) {
+ 800022c:	687b      	ldr	r3, [r7, #4]
+ 800022e:	3301      	adds	r3, #1
+ 8000230:	607b      	str	r3, [r7, #4]
+ 8000232:	687b      	ldr	r3, [r7, #4]
+ 8000234:	f5b3 6f00 	cmp.w	r3, #2048	@ 0x800
+ 8000238:	d3f1      	bcc.n	800021e <puf_raw_dump+0x1a>
+    }
+
+    uart_send_str("\nPUFEND\n");
+ 800023a:	4806      	ldr	r0, [pc, #24]	@ (8000254 <puf_raw_dump+0x50>)
+ 800023c:	f7ff ffbc 	bl	80001b8 <uart_send_str>
+    uart_flush();
+ 8000240:	f7ff ffd0 	bl	80001e4 <uart_flush>
+}
+ 8000244:	bf00      	nop
+ 8000246:	3708      	adds	r7, #8
+ 8000248:	46bd      	mov	sp, r7
+ 800024a:	bd80      	pop	{r7, pc}
+ 800024c:	080002d0 	.word	0x080002d0
+ 8000250:	10000000 	.word	0x10000000
+ 8000254:	080002dc 	.word	0x080002dc
+
+08000258 <Reset_Handler>:
+/* Standard Cortex-M4 boot follows, AFTER the dump                          */
+/* ------------------------------------------------------------------------ */
+extern int main(void);
+
+void Reset_Handler(void)
+{
+ 8000258:	b580      	push	{r7, lr}
+ 800025a:	b082      	sub	sp, #8
+ 800025c:	af00      	add	r7, sp, #0
+    /* STEP 1: dump the untouched PUF region FIRST, before touching any RAM
+     * initialization. This is deliberately the very first C statement. */
+    puf_raw_dump();
+ 800025e:	f7ff ffd1 	bl	8000204 <puf_raw_dump>
+
+    /* STEP 2: now do normal startup - copy .data from flash, zero .bss.
+     * .puf_region is a separate NOLOAD section (see linker script) and is
+     * NOT part of .bss, so this loop never touches it. */
+    uint32_t *src = &_sidata;
+ 8000262:	4b10      	ldr	r3, [pc, #64]	@ (80002a4 <Reset_Handler+0x4c>)
+ 8000264:	607b      	str	r3, [r7, #4]
+    uint32_t *dst = &_sdata;
+ 8000266:	4b10      	ldr	r3, [pc, #64]	@ (80002a8 <Reset_Handler+0x50>)
+ 8000268:	603b      	str	r3, [r7, #0]
+    while (dst < &_edata) *dst++ = *src++;
+ 800026a:	e007      	b.n	800027c <Reset_Handler+0x24>
+ 800026c:	687a      	ldr	r2, [r7, #4]
+ 800026e:	1d13      	adds	r3, r2, #4
+ 8000270:	607b      	str	r3, [r7, #4]
+ 8000272:	683b      	ldr	r3, [r7, #0]
+ 8000274:	1d19      	adds	r1, r3, #4
+ 8000276:	6039      	str	r1, [r7, #0]
+ 8000278:	6812      	ldr	r2, [r2, #0]
+ 800027a:	601a      	str	r2, [r3, #0]
+ 800027c:	683b      	ldr	r3, [r7, #0]
+ 800027e:	4a0b      	ldr	r2, [pc, #44]	@ (80002ac <Reset_Handler+0x54>)
+ 8000280:	4293      	cmp	r3, r2
+ 8000282:	d3f3      	bcc.n	800026c <Reset_Handler+0x14>
+
+    dst = &_sbss;
+ 8000284:	4b0a      	ldr	r3, [pc, #40]	@ (80002b0 <Reset_Handler+0x58>)
+ 8000286:	603b      	str	r3, [r7, #0]
+    while (dst < &_ebss) *dst++ = 0;
+ 8000288:	e004      	b.n	8000294 <Reset_Handler+0x3c>
+ 800028a:	683b      	ldr	r3, [r7, #0]
+ 800028c:	1d1a      	adds	r2, r3, #4
+ 800028e:	603a      	str	r2, [r7, #0]
+ 8000290:	2200      	movs	r2, #0
+ 8000292:	601a      	str	r2, [r3, #0]
+ 8000294:	683b      	ldr	r3, [r7, #0]
+ 8000296:	4a07      	ldr	r2, [pc, #28]	@ (80002b4 <Reset_Handler+0x5c>)
+ 8000298:	4293      	cmp	r3, r2
+ 800029a:	d3f6      	bcc.n	800028a <Reset_Handler+0x32>
+    /* Not calling SystemInit()/enabling the PLL on purpose: we stay on the
+     * reset-default HSI 16 MHz clock so the UART baud rate used for the PUF
+     * dump is identical to the baud rate main() uses. Add clock setup here
+     * later if your application needs full speed - just recompute BRR. */
+
+    main();
+ 800029c:	f7ff ff02 	bl	80000a4 <main>
+
+    while (1) { }
+ 80002a0:	bf00      	nop
+ 80002a2:	e7fd      	b.n	80002a0 <Reset_Handler+0x48>
+ 80002a4:	080002e8 	.word	0x080002e8
+ 80002a8:	20000000 	.word	0x20000000
+ 80002ac:	20000000 	.word	0x20000000
+ 80002b0:	20000000 	.word	0x20000000
+ 80002b4:	20000000 	.word	0x20000000
+
+080002b8 <Default_Handler>:
+
+/* ------------------------------------------------------------------------ */
+/* Minimal fault handlers - infinite loop so a crash is visibly stuck       */
+/* rather than silently vectoring off into garbage.                        */
+/* ------------------------------------------------------------------------ */
+void Default_Handler(void) { while (1) { } }
+ 80002b8:	b480      	push	{r7}
+ 80002ba:	af00      	add	r7, sp, #0
+ 80002bc:	bf00      	nop
+ 80002be:	e7fd      	b.n	80002bc <Default_Handler+0x4>
+ 80002c0:	544f4f42 	.word	0x544f4f42
+ 80002c4:	4d4f435f 	.word	0x4d4f435f
+ 80002c8:	54454c50 	.word	0x54454c50
+ 80002cc:	00000a45 	.word	0x00000a45
+ 80002d0:	53465550 	.word	0x53465550
+ 80002d4:	54524154 	.word	0x54524154
+ 80002d8:	0000000a 	.word	0x0000000a
+ 80002dc:	4655500a 	.word	0x4655500a
+ 80002e0:	0a444e45 	.word	0x0a444e45
+ 80002e4:	00000000 	.word	0x00000000

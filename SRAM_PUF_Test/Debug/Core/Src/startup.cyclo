@@ -1,0 +1,7 @@
+../Core/Src/startup.c:72:13:uart_init_raw	1
+../Core/Src/startup.c:89:13:uart_send_byte	2
+../Core/Src/startup.c:95:13:uart_send_str	2
+../Core/Src/startup.c:100:13:uart_flush	2
+../Core/Src/startup.c:113:13:puf_raw_dump	2
+../Core/Src/startup.c:132:6:Reset_Handler	3
+../Core/Src/startup.c:162:6:Default_Handler	1
